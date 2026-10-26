@@ -24,31 +24,33 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26'
+          go-version: '1.26.10'
           cache: false
 
       - name: Install Android NDK
         run: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.3.13750724"
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;28.0.13004108"
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> "$ANDROID_HOME/licenses/android-sdk-license"
+          echo "84831b9409646a578e44e30224243e6ec044e028" >> "$ANDROID_HOME/licenses/android-sdk-license"
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> "$ANDROID_HOME/licenses/android-sdk-license"
 
       - name: Build libbox.aar from source
         run: |
           export GOMAXPROCS=2
-          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.3.13750724
+          export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.13004108
           export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
-          
-          # Ajout de la dépendance manquante pour Go 1.24+
-          go get golang.org/x/mobile/cmd/gomobile@latest
-          go get golang.org/x/mobile/cmd/gobind@latest
-          go mod tidy
-          
-          go install golang.org/x/mobile/cmd/gomobile@latest
+
+          # Install official SagerNet gomobile and gobind
+          make lib_install
           export PATH=$PATH:$(go env GOPATH)/bin
           gomobile init
+
+          # Build libbox.aar and libbox-legacy.aar using sing-box official build tool
+          go run ./cmd/internal/build_libbox -target android -platform android/arm64,android/arm
+
           mkdir -p clients/android/app/libs
-          gomobile bind -target=android/arm64,android/arm -androidapi 24 \
-            -o clients/android/app/libs/libbox.aar \
-            github.com/sagernet/sing-box/experimental/libbox
+          cp -f libbox.aar libbox-legacy.aar clients/android/app/libs/
 
       - name: Fix AIDL and SDK path
         run: |
