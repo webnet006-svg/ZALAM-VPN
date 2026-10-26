@@ -36,6 +36,12 @@ jobs:
           export GOMAXPROCS=2
           export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.3.13750724
           export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
+          
+          # Ajout de la dépendance manquante pour Go 1.24+
+          go get golang.org/x/mobile/cmd/gomobile@latest
+          go get golang.org/x/mobile/cmd/gobind@latest
+          go mod tidy
+          
           go install golang.org/x/mobile/cmd/gomobile@latest
           export PATH=$PATH:$(go env GOPATH)/bin
           gomobile init
