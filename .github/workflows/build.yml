@@ -17,7 +17,9 @@ jobs:
 
       - name: Ensure Android client matches sing-box version
         run: |
-          git -C clients/android checkout a548a7903e96266a0046018562c73b192edbfc18 || true
+          git -C clients/android remote set-url origin https://github.com/webnet006-svg/sing-box-for-android.git
+          git -C clients/android fetch origin zalam-dev
+          git -C clients/android checkout zalam-dev
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
